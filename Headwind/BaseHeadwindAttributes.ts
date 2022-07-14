@@ -1,4 +1,6 @@
 import { color } from './HeadwindColors';
+import { CSSModifierType } from './HeadwindModifiers';
+
 
 export const baseAttrs = {
   bg: (value) => `background-color: ${color(value)}`,
@@ -11,5 +13,10 @@ export const baseColors = {
 };
 
 export const baseModifiers = {
-  nightmode: () => `media (prefers-color-scheme: dark)`
+  nightmode: () => {
+    return {
+      rule: `media (prefers-color-scheme: dark)`,
+      type: CSSModifierType.AT_RULE
+    }
+  }
 }

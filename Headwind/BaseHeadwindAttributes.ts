@@ -11,5 +11,5 @@ export const baseColors = {
 };
 
 export const baseModifiers = {
-  ni
+  nightmode: () => `media (prefers-color-scheme: dark)`
 }

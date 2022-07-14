@@ -1,0 +1,19 @@
+h1, p {
+  font-family: Lato;
+}
+
+.\@hover\:bg-red {
+  background-color: red;
+}
+
+.font {
+ font-family: 'Courier New', Courier, monospace; 
+}
+
+.div:first-child {
+  background-color: blue;
+}
+
+.div:first-child {
+  background-color: blue;
+}

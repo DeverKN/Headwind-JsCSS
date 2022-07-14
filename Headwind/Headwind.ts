@@ -34,3 +34,8 @@ const handleClassName = (className) => {
   }
   return className;
 };
+
+export const createAnimation = (animation) => {
+  console.log({animation})
+  hwStyleSheet.insertRule(animation);
+};

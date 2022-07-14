@@ -1,15 +1,25 @@
-import { handleHeadwindAttr } from './HeadwindAttributes';
+import {
+  AttributeType,
+  handleHeadwindAttr,
+  HeadwindAnimationAttribute,
+} from './HeadwindAttributes';
 import { handleModifier, CSSModifierType } from './HeadwindModifiers';
+import { createAnimation } from './Headwind'
 
 export const generateCSSRuleFromClassName = (className) => {
   return parsedClassNameToCSS(parseClassName(className));
 };
 
+const createAnimation = () => {};
+
 export const sanitizeClassName = (baseClassName) => {
   let santizedClassName = baseClassName;
-  const charsToEscape = ['@', ':']
+  const charsToEscape = ['@', ':'];
   for (const escapeChar of charsToEscape) {
-    santizedClassName = santizedClassName.replaceAll(escapeChar, `\\${escapeChar}`);
+    santizedClassName = santizedClassName.replaceAll(
+      escapeChar,
+      `\\${escapeChar}`
+    );
   }
   return santizedClassName;
 };
@@ -27,8 +37,8 @@ export const parseClassName = (baseClassName) => {
     const doubleColonModifierRegex = /@[A-z0-9]*::/;
     modifiers = modifierRegexResults.map((res) => {
       const doubleColon = doubleColonModifierRegex.test(res);
-      const ruleString = res.slice(1, doubleColon ? -2 : -1)
-      return handleModifier(ruleString, "", doubleColon)
+      const ruleString = res.slice(1, doubleColon ? -2 : -1);
+      return handleModifier(ruleString, '', doubleColon);
     });
     classNameToParse = classNameToParse.slice(modifiersEnd);
   }
@@ -51,8 +61,8 @@ export const parsedClassNameToCSS = (parsedClassName) => {
       if (type === CSSModifierType.PSEUDO_CLASS) return `${prev}::${rule}`;
       if (type === CSSModifierType.PSEUDO_SELECTOR) return `${prev}:${rule}`;
       if (type === CSSModifierType.AT_RULE) {
-        atRules.push(rule)
-        return ''
+        atRules.push(rule);
+        return '';
       }
     }, '');
     selector = `.${sanitizedClassName}${modifiersText}`;
@@ -60,20 +70,25 @@ export const parsedClassNameToCSS = (parsedClassName) => {
     selector = `.${sanitizedClassName}`;
   }
   const style = handleHeadwindAttr(token, value);
-  if (style === null) return {sanitizedClassName, fallThrough: true}
+  if (style.type === AttributeType.FALLTHROUGH)
+    return { sanitizedClassName, fallThrough: true };
+  if (style.type === AttributeType.ANIMATION) {
+    const animationStyle = style as HeadwindAnimationAttribute;
+    createAnimation(animationStyle.animation);
+  }
   return {
     sanitizedClassName,
-    ruleString: createCSSString(selector, style, false, atRules),
+    ruleString: createCSSString(selector, style.value, false, atRules),
   };
 };
 
 export const createCSSString = (selector, style, important, atRules) => {
-  let cssString = `${selector} { ${style}${important ? "!important" : ""}; }`
+  let cssString = `${selector} { ${style}${important ? '!important' : ''}; }`;
   if (atRules) {
     for (const atRule of atRules) {
-      cssString = `@${atRule} { ${cssString} }`
+      cssString = `@${atRule} { ${cssString} }`;
     }
   }
-  console.log({cssString})
-  return cssString
-}
+  console.log({ cssString });
+  return cssString;
+};

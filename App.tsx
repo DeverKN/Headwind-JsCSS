@@ -13,7 +13,7 @@ export default function App() {
     setColor(colors[newColorIndex]);
   };
 
-  const css = `bg-${color} @nightmode:@hover:color-sexypink font animate-ping`
+  const css = `bg-${color} @focus:@hover:(bg-green color-sexypink font animate-bounce)`
 
   return (
     <div className={hw(`flex`)}>

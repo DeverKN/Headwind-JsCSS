@@ -4,27 +4,34 @@ import {
   HeadwindAnimationAttribute,
 } from './HeadwindAttributes';
 import { handleModifier, CSSModifierType } from './HeadwindModifiers';
-import { createAnimation } from './Headwind'
+import { createAnimation } from './Headwind';
 
 export const generateCSSRuleFromClassName = (className) => {
   return parsedClassNameToCSS(parseClassName(className));
 };
 
-const createAnimation = () => {};
-
-export const sanitizeClassName = (baseClassName) => {
-  let santizedClassName = baseClassName;
-  const charsToEscape = ['@', ':'];
+export const sanitizeClassName = (baseClassName: string) => {
+  console.log('sanitize');
+  //Replace spaces inside of parentheses
+  const spaceInParenthesesRegex = /( (?=[^(]*\)))/g;
+  const classWithSpaces = baseClassName;
+  const classWithoutSpaces = classWithSpaces.replaceAll(
+    spaceInParenthesesRegex,
+    '_'
+  );
+  let sanitizedClassName = classWithoutSpaces;
+  const charsToEscape = ['@', ':', '(', ')'];
   for (const escapeChar of charsToEscape) {
-    santizedClassName = santizedClassName.replaceAll(
+    sanitizedClassName = sanitizedClassName.replaceAll(
       escapeChar,
       `\\${escapeChar}`
     );
   }
-  return santizedClassName;
+  console.log({ classWithSpaces, classWithoutSpaces, sanitizedClassName });
+  return {classWithoutSpaces, sanitizedClassName};
 };
 
-export const parseClassName = (baseClassName) => {
+export const parseClassName = (baseClassName: string) => {
   let classNameToParse = baseClassName;
   const modifierRegex = /@[A-z0-9]*:{1,2}/g;
   const modifierRegexResults = classNameToParse.match(modifierRegex);
@@ -42,18 +49,29 @@ export const parseClassName = (baseClassName) => {
     });
     classNameToParse = classNameToParse.slice(modifiersEnd);
   }
-  const [token, value] = classNameToParse.split('-');
+  const attributes = [];
+  if (classNameToParse.includes('('))
+    classNameToParse = classNameToParse.slice(1, -1);
+  classNameToParse.split(' ').forEach((attr) => {
+    const [token, ...values] = attr.split('-');
+    attributes.push({
+      token,
+      values: values ?? [],
+    });
+  });
+  console.log({ attributes });
+  const {sanitizedClassName, classWithoutSpaces} = sanitizeClassName(baseClassName)
   return {
-    sanitizedClassName: sanitizeClassName(baseClassName),
+    sanitizedClassName,
+    classWithoutSpaces,
     baseClassName,
     modifiers,
-    token,
-    value: value ?? null,
+    attributes,
   };
 };
 
 export const parsedClassNameToCSS = (parsedClassName) => {
-  const { sanitizedClassName, modifiers, token, value } = parsedClassName;
+  const { sanitizedClassName, classWithoutSpaces, modifiers, attributes } = parsedClassName;
   let selector;
   let atRules = [];
   if (modifiers.length > 0) {
@@ -69,21 +87,32 @@ export const parsedClassNameToCSS = (parsedClassName) => {
   } else {
     selector = `.${sanitizedClassName}`;
   }
-  const style = handleHeadwindAttr(token, value);
-  if (style.type === AttributeType.FALLTHROUGH)
-    return { sanitizedClassName, fallThrough: true };
-  if (style.type === AttributeType.ANIMATION) {
-    const animationStyle = style as HeadwindAnimationAttribute;
-    createAnimation(animationStyle.animation);
-  }
+  let fallthroughs = [];
+  let styles = [];
+  attributes.forEach(({ token, values }) => {
+    const style = handleHeadwindAttr(token, values);
+    if (style.type === AttributeType.FALLTHROUGH) {
+      fallthroughs.push([token, ...values].join('-'));
+      return;
+    }
+    if (style.type === AttributeType.ANIMATION) {
+      const animationStyle = style as HeadwindAnimationAttribute;
+      createAnimation(animationStyle.animation);
+    }
+    styles.push(style.value);
+  });
   return {
     sanitizedClassName,
-    ruleString: createCSSString(selector, style.value, false, atRules),
+    classWithoutSpaces,
+    ruleString: createCSSString(selector, styles, false, atRules),
+    fallthroughs,
   };
 };
 
-export const createCSSString = (selector, style, important, atRules) => {
-  let cssString = `${selector} { ${style}${important ? '!important' : ''}; }`;
+export const createCSSString = (selector, styles, important, atRules) => {
+  let cssString = `${selector} { ${styles.join(
+    `${important ? '!important' : ''};\n`
+  )} }`;
   if (atRules) {
     for (const atRule of atRules) {
       cssString = `@${atRule} { ${cssString} }`;

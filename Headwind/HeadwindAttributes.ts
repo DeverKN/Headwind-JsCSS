@@ -43,10 +43,10 @@ export const addHeadwindAttributeHandlers = (
 
 export const handleHeadwindAttr = (
   token: string,
-  value: string
+  values: string[]
 ): HeadwindAttribute => {
   if (headwindAttrHandlers.has(token)) {
-    return headwindAttrHandlers.get(token)(value);
+    return headwindAttrHandlers.get(token)(...values);
   } else {
     return { value: '', type: AttributeType.FALLTHROUGH };
   }

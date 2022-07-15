@@ -1,20 +1,29 @@
 import { color } from './HeadwindColors';
 import { CSSModifierType } from './HeadwindModifiers';
 import { AttributeType } from './HeadwindAttributes';
+import { handleAnimation } from './HeadwindAnimations';
 
-const baseHeadwindAnimations = (value) => {
-  if (value === 'ping') {
-    return {
-        value: `animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;`,
-        animation: `@keyframes ping {
-          75%, 100% {
-            transform: scale(2);
-            opacity: 0;
-          }
-        }`,
-        type: AttributeType.ANIMATION
+export const baseAnimations = {
+  bounce: {
+    value: `animation: bounce 1s infinite;`,
+    animation: `@keyframes bounce {
+      0%, 100% {
+        transform: translateY(-25%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
       }
-
+      50% {
+        transform: translateY(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+      }`
+  },
+  ping: {
+    value: `animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;`,
+    animation: `@keyframes ping {
+      75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }`
   }
 }
 
@@ -37,7 +46,13 @@ export const baseAttrs = {
       type: AttributeType.CSS_ATTRIBUTE
     }
   },
-  animate: baseHeadwindAnimations
+  font: () => {
+    return {
+      value: `font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;`,
+      type: AttributeType.CSS_ATTRIBUTE
+    }
+  },
+  animate: (animationName, ...values) => handleAnimation(animationName, ...values)
 };
 
 export const baseColors = {

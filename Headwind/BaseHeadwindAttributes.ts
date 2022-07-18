@@ -27,6 +27,19 @@ export const baseAnimations = {
   }
 }
 
+export const pureHandler = (value: string, type: Number) => {
+  return () => {
+    return {
+      value,
+      type
+    }
+  }
+}
+
+export const pureAttr = (value: string) => {
+  return pureHandler(value, AttributeType.CSS_ATTRIBUTE)
+}
+
 export const baseAttrs = {
   bg: (value) => {
     return {
@@ -40,18 +53,8 @@ export const baseAttrs = {
       type: AttributeType.CSS_ATTRIBUTE
     }
   },
-  flex: () => {
-    return {
-      value: `display: flex`,
-      type: AttributeType.CSS_ATTRIBUTE
-    }
-  },
-  font: () => {
-    return {
-      value: `font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;`,
-      type: AttributeType.CSS_ATTRIBUTE
-    }
-  },
+  flex: pureAttr(`display: flex`),
+  font: pureAttr(`font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;`),
   animate: (animationName, ...values) => handleAnimation(animationName, ...values)
 };
 
@@ -59,11 +62,10 @@ export const baseColors = {
   sexypink: `#ff69b4`,
 };
 
+export const pureModifier = (value: string) => {
+  return pureHandler(value, CSSModifierType.AT_RULE)
+}
+
 export const baseModifiers = {
-  nightmode: () => {
-    return {
-      rule: `media (prefers-color-scheme: dark)`,
-      type: CSSModifierType.AT_RULE
-    }
-  }
+  nightmode: pureModifier(`media (prefers-color-scheme: dark)`)
 }
